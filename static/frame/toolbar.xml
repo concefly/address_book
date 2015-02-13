@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<toolbar>
+	<item id="newContact" type="button" text="新建联系人" />
+	<item id="delContact" type="button" text="删除联系人" />
+	<item id="sep01" type="separator"/>         
+</toolbar>

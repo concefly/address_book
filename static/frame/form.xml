@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<items>
+    <item type="settings"  inputWidth="220"  position="label-left"  labelWidth="70"/>
+	<item type="input" label="姓名" name="name" offsetLeft="15"/>
+    <item type="input" label="电话"  name="mobile" offsetLeft="15"/>
+    <item type="input" label="分组"  name="group" offsetLeft="15"/>
+    <item type="input" label="标签"  name="tag" offsetLeft="15"/>
+	<item type="button"  value="保存" offsetTop="15" offsetLeft="230"/>
+	<item type="button"  value="删除" offsetTop="15" offsetLeft="230"/>
+</items>

@@ -1,0 +1,16 @@
+<rows>
+  <head>
+    <column width="25" id="name"   type="ro" align="left" sort="str">姓名</column>
+    <column width="25" id="mobile" type="ro" align="left" sort="str">电话</column>
+    <column width="25" id="group" type="ro" align="left" sort="str">分组</column>
+    <column width="25" id="tag" type="ro" align="left" sort="str">标签</column>
+    <settings>
+      <colwidth>%</colwidth>
+    </settings>
+    <beforeInit>
+      <call command="attachHeader">
+        <param>#text_filter,#text_filter,#text_filter,#text_filter</param>
+      </call> 
+    </beforeInit>
+  </head>
+</rows>
