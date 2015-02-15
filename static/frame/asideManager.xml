@@ -1,0 +1,6 @@
+<tree id="0">
+	<item id="group" child="1" text="所有分组" open="true">
+	</item>
+	<item id="tag" child="1" text="所有标签" open="true">
+	</item>
+</tree>

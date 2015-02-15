@@ -25,10 +25,12 @@
         var layout,menu,toolbar,contactsGrid,contactForm;
         dhtmlx.image_path = "/static/codebase/imgs/";
         dhtmlxEvent(window,"load",function(){                                          //provides the script as a handler of the 'onload' HTML event
-            layout = new dhtmlXLayoutObject(document.body,"2U");                       //initializes dhtmlxLayout
-            layout.cells("a").setText("Contacts");
-            layout.cells("b").setText("Contact Details");
-            layout.cells("b").setWidth(500);
+            layout = new dhtmlXLayoutObject(document.body,"3W");                       //initializes dhtmlxLayout
+            layout.cells("a").setText("Manager");
+            layout.cells("a").setWidth(240);
+            layout.cells("b").setText("Contacts");
+            layout.cells("c").setText("Contact Details");
+            // layout.cells("b").setWidth(500);
 
             menu = layout.attachMenu();                                                //initializes dhtmlxMenu
             menu.setIconsPath("icons/");                                               //sets the path to custom icons
@@ -37,10 +39,13 @@
             toolbar = layout.attachToolbar();                                          //initializes dhtmlxToolbar
             toolbar.loadXML("/static/frame/toolbar.xml");                                       //loads items from the "data/toolbar.xml" file to the toolbar
 
-            contactsGrid = layout.cells("a").attachGrid();                             //initializes 
+            asideManager = layout.cells("a").attachTree();
+            asideManager.loadXML("/data/asidemanager")
+
+            contactsGrid = layout.cells("b").attachGrid();                             //initializes 
             contactsGrid.load("/data/contacts","xml");
 
-            contactForm = layout.cells("b").attachForm();                              //initializes dhtmlxForm
+            contactForm = layout.cells("c").attachForm();                              //initializes dhtmlxForm
             contactForm.loadStruct("/static/frame/form.xml");                                   //loads controls, specified in the "data/form.xml" file to the form
             contactForm.bind(contactsGrid);                                            //binds the form to the grid
 

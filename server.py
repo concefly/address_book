@@ -168,6 +168,28 @@ class contacts_handler(base_handler):
 			res.append(act)
 		self.write_xml(res)
 
+class asidemanager_handler(base_handler):
+	default_frame = os.path.join(__dir__,"static","frame","asideManager.xml")
+	def get(self):
+		xml_tree = et.parse(self.default_frame).getroot()
+		# 填充group目录
+		xml_group = xml_tree.find("item[@id='group']")
+		with orm.db_session:
+			for _group in Group.select():
+				xml_item = et.Element("item")
+				xml_item.set("id"   ,str(_group.id))
+				xml_item.set("text" ,_group.name)
+				xml_group.append(xml_item)
+		# 填充tag目录
+		xml_tag = xml_tree.find("item[@id='tag']")
+		with orm.db_session:
+			for _tag in Tag.select():
+				xml_item = et.Element("item")
+				xml_item.set("id"   ,str(_tag.id))
+				xml_item.set("text" ,_tag.name)
+				xml_tag.append(xml_item)
+		# 
+		self.write_xml(xml_tree)
 
 class contacts_group_options_handler(base_handler):
 	def get(self):
@@ -189,6 +211,7 @@ if __name__ == "__main__":
 	app = tweb.Application([
 		(r"/data/contacts/group/options",contacts_group_options_handler),
 		(r"/data/contacts",contacts_handler),
+		(r"/data/asidemanager",asidemanager_handler),
 		(r"/", MainHandler),
 	],**settings)
 	app.listen(8080)
