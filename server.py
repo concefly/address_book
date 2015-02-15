@@ -28,12 +28,12 @@ class Person(db.Entity):
 
 class Tag(db.Entity):
 	id     = orm.PrimaryKey(int, auto=True)
-	name   = orm.Required(str)
+	name   = orm.Required(str, unique=True)
 	people = orm.Set(Person)
 
 class Group(db.Entity):
 	id     = orm.PrimaryKey(int, auto=True)
-	name   = orm.Required(str)
+	name   = orm.Required(str, unique=True)
 	people = orm.Set(Person)
 
 db.generate_mapping(create_tables=True)
