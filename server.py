@@ -92,7 +92,6 @@ class contacts_handler(base_handler):
 				if qf_or:
 					qf_and.append(" or ".join(qf_or))
 			query_filter = " and ".join( map(lambda x:"(%s)" %(x,), qf_and ))
-			print("query_filter: ",query_filter)
 			query_filter_func = eval("lambda p: "+query_filter) if query_filter else lambda p:p
 			# END 生成查询判断函数
 			query = Person.select(query_filter_func)
@@ -207,16 +206,28 @@ class asidemanager_handler(base_handler):
 		with orm.db_session:
 			for _group in Group.select():
 				xml_item = et.Element("item")
-				xml_item.set("id"   ,str(_group.id))
+				xml_item.set("id"   ,"group"+str(_group.id))
 				xml_item.set("text" ,_group.name)
+				# 插入查询URL
+				xml_query = et.Element("userdata")
+				xml_query.set("name","query")
+				xml_query.text = "?group=%s" %(_group.name,)
+				xml_item.append(xml_query)
+				# 
 				xml_group.append(xml_item)
 		# 填充tag目录
 		xml_tag = xml_tree.find("item[@id='tag']")
 		with orm.db_session:
 			for _tag in Tag.select():
 				xml_item = et.Element("item")
-				xml_item.set("id"   ,str(_tag.id))
+				xml_item.set("id"   ,"tag"+str(_tag.id))
 				xml_item.set("text" ,_tag.name)
+				# 插入查询URL
+				xml_query = et.Element("userdata")
+				xml_query.set("name","query")
+				xml_query.text = "?tag=%s" %(_tag.name,)
+				xml_item.append(xml_query)
+				# 
 				xml_tag.append(xml_item)
 		# 
 		self.write_xml(xml_tree)

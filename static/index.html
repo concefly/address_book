@@ -22,7 +22,7 @@
     </style>
 
     <script type="text/javascript">
-        var layout,menu,toolbar,contactsGrid,contactForm;
+        var layout,menu,toolbar,contactsGrid,contactForm,asideManager;
         dhtmlx.image_path = "/static/codebase/imgs/";
         dhtmlxEvent(window,"load",function(){                                          //provides the script as a handler of the 'onload' HTML event
             layout = new dhtmlXLayoutObject(document.body,"3W");                       //initializes dhtmlxLayout
@@ -40,10 +40,15 @@
             toolbar.loadXML("/static/frame/toolbar.xml");                                       //loads items from the "data/toolbar.xml" file to the toolbar
 
             asideManager = layout.cells("a").attachTree();
-            asideManager.loadXML("/data/asidemanager")
+            asideManager.loadXML("/data/asidemanager");
 
             contactsGrid = layout.cells("b").attachGrid();                             //initializes 
             contactsGrid.load("/data/contacts","xml");
+
+            asideManager.attachEvent("onSelect",function (id) {
+                var query = asideManager.getUserData(id,'query');
+                contactsGrid.load("/data/contacts"+query,"xml");
+            });
 
             contactForm = layout.cells("c").attachForm();                              //initializes dhtmlxForm
             contactForm.loadStruct("/static/frame/form.xml");                                   //loads controls, specified in the "data/form.xml" file to the form
