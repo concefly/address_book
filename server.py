@@ -53,19 +53,49 @@ class MainHandler(base_handler):
 
 class contacts_handler(base_handler):
 	user_field    = ["name","mobile"]
+	# 查询字段
+	query_field   = dict(map(lambda x:(x,(x,"==")), user_field))
+	query_field.update({
+		# field_name : (model,method)
+		"group" : ("group.name","=="),
+		"tag"   : ("tags.name" ," in "),
+	})
 	default_frame = os.path.join(__dir__,"static","frame","contacts_default.xml")
 	def get(self):
+		"""查询参数：
+		@name: 姓名。可空，用逗号分隔。
+		@mobile: 电话。可空，用逗号分隔。
+		@group: 组名字符串。可空，用逗号分隔，默认为"noclass"。
+		@tag: 标签字符串。可空，用逗号分隔。
+		"""
 		if hasattr(self,"default_frame"):
 			rows = et.parse(self.default_frame).getroot()
 		else:
 			rows = et.Element('rows')
-		tags = self.get_query_arguments("tag")
-		group = self.get_query_argument("group",default=None)
+		# 填充查询字段
+		query_field = {}
+		for k in self.query_field:
+			query_field[k] = self.get_query_argument(k,default="")
+			if not query_field[k]:
+				query_field[k] = ""
+		# 
 		with orm.db_session:
-			if group:
-				query = orm.select(p for p in Person if p.group.name==group)
-			else:
-				query = orm.select(p for p in Person)
+			# 生成查询判断函数
+			# (...or...) and (...or...) and ...
+			qf_and = []
+			for k,value in query_field.items():
+				qf_or = []
+				for v in value.split(','):
+					if v:
+						model,method = self.query_field[k]
+						qf_or.append("'%s'%sp.%s" %(v,method,model))
+				if qf_or:
+					qf_and.append(" or ".join(qf_or))
+			query_filter = " and ".join( map(lambda x:"(%s)" %(x,), qf_and ))
+			print("query_filter: ",query_filter)
+			query_filter_func = eval("lambda p: "+query_filter) if query_filter else lambda p:p
+			# END 生成查询判断函数
+			query = Person.select(query_filter_func)
 			for i in query:
 				row = et.Element("row")
 				row.set("id",str(i.id))
@@ -74,13 +104,13 @@ class contacts_handler(base_handler):
 						cell = et.Element("cell")
 						cell.text = getattr(i,_cell)
 						row.append(cell)
-				# group @cell
+				# group's cell
 				cell = et.Element("cell")
 				cell.text = i.group.name
 				row.append(cell)
-				# tag @cell
+				# tag's cell
 				cell = et.Element("cell")
-				cell.text = ", ".join(list(i.tags.name))
+				cell.text = ",".join(list(i.tags.name))
 				row.append(cell)
 				# 
 				rows.append(row)
@@ -88,7 +118,7 @@ class contacts_handler(base_handler):
 	def post(self):
 		"""POST的参数：
 		@group: 组名字符串。后台自动添加不存在的组名。可空，默认为"noclass"。
-		@tags: 标签字符串。用逗号分隔，后台自动添加不存在的标签名。可空。
+		@tag: 标签字符串。用逗号分隔，后台自动添加不存在的标签名。可空。
 		"""
 		if self.get_argument("editing",default=None) != "true":
 			return
