@@ -74,17 +74,38 @@ class contacts_handler(base_handler):
 						cell = et.Element("cell")
 						cell.text = getattr(i,_cell)
 						row.append(cell)
-				# group cell
+				# group @cell
 				cell = et.Element("cell")
 				cell.text = i.group.name
 				row.append(cell)
-				# tag cell
+				# tag @cell
 				cell = et.Element("cell")
 				cell.text = ", ".join(list(i.tags.name))
 				row.append(cell)
 				# 
 				rows.append(row)
+				# all_groups @userdata
+				userdata = et.Element("userdata")
+				userdata.set("name","all_groups")
+				userdata.text = ",".join(map(lambda g:g.name, Group.select()))
+				rows.append(userdata)
+				# all_tags @userdata
+				userdata = et.Element("userdata")
+				userdata.set("name","all_tags")
+				userdata.text = ",".join(map(lambda g:g.name, Tag.select()))
+				rows.append(userdata)
 		self.write_xml(rows)
+
+class contacts_group_options_handler(base_handler):
+	def get(self):
+		xml_data = et.Element("data")
+		with orm.db_session:
+			for _group in Group.select():
+				xml_item = et.Element("item")
+				xml_item.set("value",_group.name)
+				xml_item.set("label",_group.name)
+				xml_data.append(xml_item)
+		self.write_xml(xml_data)
 
 if __name__ == "__main__":
 	settings = {
@@ -93,6 +114,7 @@ if __name__ == "__main__":
 		'static_url_prefix': '/static/',
 	}
 	app = tweb.Application([
+		(r"/data/contacts/group/options",contacts_group_options_handler),
 		(r"/data/contacts",contacts_handler),
 		(r"/", MainHandler),
 	],**settings)
