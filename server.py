@@ -84,17 +84,90 @@ class contacts_handler(base_handler):
 				row.append(cell)
 				# 
 				rows.append(row)
-				# all_groups @userdata
-				userdata = et.Element("userdata")
-				userdata.set("name","all_groups")
-				userdata.text = ",".join(map(lambda g:g.name, Group.select()))
-				rows.append(userdata)
-				# all_tags @userdata
-				userdata = et.Element("userdata")
-				userdata.set("name","all_tags")
-				userdata.text = ",".join(map(lambda g:g.name, Tag.select()))
-				rows.append(userdata)
 		self.write_xml(rows)
+	def post(self):
+		"""POST的参数：
+		@group: 组名字符串。后台自动添加不存在的组名。可空，默认为"noclass"。
+		@tags: 标签字符串。用逗号分隔，后台自动添加不存在的标签名。可空。
+		"""
+		if self.get_argument("editing",default=None) != "true":
+			return
+		ids = self.get_body_argument("ids",default="").split(',')
+		res = et.Element("data")
+		for _id in ids:
+			gr_id = self.get_body_argument("%s_gr_id" %(_id,))
+			field = {}
+			# 填充group和tags字段
+			field["group"] = self.get_body_argument("%s_group" %(_id,),default="")
+			field["tags"] = self.get_body_argument("%s_tag" %(_id,),default="")
+			if not field['group']:
+				field['group'] = "noclass"
+			if not field['tags']:
+				field['tags'] = ""
+			# 填充用户字段
+			if hasattr(self,"user_field"):
+				for _name in self.user_field:
+					field[_name] = self.get_body_argument("%s_%s" %(_id,_name),default="-")
+			status = self.get_body_argument("%s_!nativeeditor_status" %(_id,))
+			# 写入数据库
+			tid = [gr_id]
+			with orm.db_session:
+				if status=="updated":
+					r = Person[gr_id]
+					if hasattr(self,"user_field"):
+						for k in self.user_field:
+							setattr(r, k, field[k])
+					# 处理group字段
+					# 新建不存在的group
+					_group = Group.get(name=field['group'])
+					if _group:
+						r.group = _group
+					else:
+						r.group.create(name=field['group'])
+					# 处理tags字段
+					# 新建不存在的tag
+					for tag in field['tags'].split(','):
+						if tag:
+							_tag = Tag.get(name=tag)
+							if _tag:
+								r.tags.add(_tag)
+							else:
+								r.tags.create(name=field['tags'])
+				if status=="inserted":
+					init_field = dict(field)
+					# 处理group字段
+					# 新建不存在的group
+					_group = Group.get(name=field['group'])
+					if _group:
+						init_field['group'] = _group
+					else:
+						init_field['group'] = Group(name=field['group'])
+					# 处理tags字段
+					# 新建不存在的tag
+					init_field['tags'] = []
+					for tag in field['tags'].split(','):
+						if tag:
+							_tag = Tag.get(name=tag)
+							if _tag:
+								init_field['tags'].append(_group)
+							else:
+								init_field['tags'].append(Tag(name=tag))
+					# 
+					r = Person(**init_field)
+					# 提交以更新id
+					orm.commit()
+					tid[0] = str(r.id)
+				if status=="deleted":
+					r = Person[gr_id]
+					Person[gr_id].delete()
+			# 插入一条 action xml item
+			act = et.Element("action")
+			act.set("type",status)
+			act.set("sid",gr_id)
+			act.set("tid",tid[0])
+			res.append(act)
+		self.write_xml(res)
+
 
 class contacts_group_options_handler(base_handler):
 	def get(self):
